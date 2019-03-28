@@ -1,0 +1,19 @@
+{
+  "scripts": {
+    "start": "gapi start --parcel",
+    "build": "gapi build",
+    "clean": "rm -rf dist .cache"
+  },
+  "dependencies": {
+    "@gapi/core": "^1.4.92",
+    "@gapi/voyager": "^1.4.92",
+    "@rxdi/neo4j": "^0.0.409"
+  },
+  "devDependencies": {
+    "@gapi/cli": "^1.4.92",
+    "@types/graphql": "^14.0.7",
+    "@types/hapi": "^18.0.1",
+    "@types/node": "^11.12.0",
+    "typescript": "^3.3.4000"
+  }
+}
