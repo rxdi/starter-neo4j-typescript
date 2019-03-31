@@ -1,4 +1,5 @@
 {
+  "name": "@rxdi/starter-neo4j-typescript",
   "scripts": {
     "start": "gapi start --parcel",
     "build": "gapi build",
@@ -7,7 +8,7 @@
   "dependencies": {
     "@gapi/core": "^1.4.92",
     "@gapi/voyager": "^1.4.92",
-    "@rxdi/neo4j": "^0.0.409"
+    "@rxdi/neo4j": "^0.2.1"
   },
   "devDependencies": {
     "@gapi/cli": "^1.4.92",
