@@ -4,12 +4,12 @@
 #### To start developing clone repository
 
 ```bash
-git clone https://github.com/rxdi/starter-neo4js-javascript
+git clone https://github.com/rxdi/starter-neo4js-typescript
 ```
 
 #### Install @gapi command line interface and typescript node
 ```bash
-cd starter-neo4js-javascript && npm i
+cd starter-neo4js-typescript && npm i
 ```
 
 #### Download Neo4J database https://neo4j.com/download/
@@ -20,43 +20,114 @@ cd starter-neo4js-javascript && npm i
 
 > You only need to setup `password` field
 
-Open `src/main.ts` and fill configuration
 
 ```typescript
-import { CoreModule, Module, Bootstrap } from '@gapi/core';
-import { VoyagerModule } from '@gapi/voyager';
-import { Neo4JModule } from '@rxdi/neo4j';
-import { GraphQLObjectType, GraphQLString } from 'graphql';
+import { CoreModule, Module } from "@gapi/core";
+import { VoyagerModule } from "@gapi/voyager";
+import { Neo4JModule } from "@rxdi/neo4j";
+import { AppController } from "./app.controller";
 
-const UserType = new GraphQLObjectType({
-  name: "User",
+@Module({
+  controllers: [AppController],
+  imports: [
+    CoreModule.forRoot(),
+    Neo4JModule.forRoot({
+      password: "your-password",
+      username: "neo4j",
+      address: "bolt://localhost:7687"
+    }),
+    VoyagerModule.forRoot()
+  ]
+})
+export class AppModule {}
+
+```
+
+#### App Controller
+```typescript
+import { Controller, GraphQLList, Query, Type } from "@gapi/core";
+import { graphRequest } from "@rxdi/neo4j";
+import { Movie } from "./movie.type";
+import { Genre } from "./genre.type";
+
+@Controller()
+export class AppController {
+  @Type(new GraphQLList(Movie))
+  @Query()
+  Movie(root, params, ctx, resolveInfo) {
+    return graphRequest(root, params, ctx, resolveInfo);
+  }
+
+  @Type(new GraphQLList(Genre))
+  @Query()
+  Genre(root, params, ctx, resolveInfo) {
+    return graphRequest(root, params, ctx, resolveInfo);
+  }
+}
+```
+
+#### Movie Type
+
+```typescript
+import {
+  GraphQLObjectType,
+  GraphQLString,
+  GraphQLInt,
+  GraphQLFloat,
+  GraphQLList
+} from "graphql";
+import { Genre } from "./genre.type";
+
+export const Movie = new GraphQLObjectType({
+  name: "Movie",
   fields: () => ({
-    id: {
+    title: {
       type: GraphQLString
     },
-    name: {
-      type: GraphQLString
+    year: {
+      type: GraphQLInt
     },
+    imdbRating: {
+      type: GraphQLFloat
+    },
+    genres: {
+      relation: {
+        name: "IN_GANRE",
+        direction: "OUT"
+      },
+      type: new GraphQLList(Genre)
+    }
   })
 });
 
-@Module({
-    imports: [
-      CoreModule.forRoot(),
-      Neo4JModule.forRoot({
-        types: [UserType],
-        password: "your-password",
-        username: "neo4j",
-        address: "bolt://localhost:7687"
-      }),
-      VoyagerModule.forRoot()
-    ]
-  })
-export class AppModule {}
-
-
-Bootstrap(AppModule).subscribe();
 ```
+
+
+#### Genre Type
+
+```typescript
+import { GraphQLObjectType, GraphQLString, GraphQLList } from "graphql";
+import { Movie } from "./movie.type";
+
+export const Genre = new GraphQLObjectType({
+  name: "Genre",
+  fields: () => ({
+    name: {
+      type: GraphQLString
+    },
+    movies: {
+      relation: {
+        name: "IN_GANRE",
+        direction: "IN"
+      },
+      type: new GraphQLList(Movie)
+    }
+  })
+});
+
+```
+
+
 
 #### Start application
 > Wait for about 5 seconds and browser will be started leading you to Graphiql panel
@@ -81,42 +152,6 @@ npm run build
 npm run clean
 ```
 
-#### Use CRUD operations
-
-```graphql
-mutation mutations {
-  CreateUser(id:"", name:"") {
-    id
-    name
-    _id
-  }
-  DeleteUser(id:"") {
-    id
-    name
-    _id
-  }
-  UpdateUser(id:"", name:"") {
-    id
-    name
-  }
-}
-
-query queries {
-  User(id:"", name:"", first: 10, offset: 20, orderBy:id_asc) {
-    id
-    name
-  }
-}
-```
-
-
-#### Open graphiql DevTools
-```
-http://0.0.0.0:9000/devtools
-```
-
-![dev-tools](https://ipfs.io/ipfs/QmPyMcVqLjyeVVUiYYWmE4PcXh2MvAnKzGhLjdrYVzC9ns)
-
 
 #### Open voyager panel
 
@@ -128,3 +163,81 @@ http://0.0.0.0:9000/voyager
 ![voyager](https://ipfs.io/ipfs/QmWNEZANeePQLpY9P7AX4Kz6gwt7Z67NsxJhQy6GmXByo5)
 
 
+#### Open graphiql DevTools
+```
+http://0.0.0.0:9000/devtools
+```
+
+#### Example
+
+1. Create `Movie`
+
+```graphql
+mutation {
+  CreateMovie(title: "Titanic", year: 1990, imdbRating: 1) {
+    title
+    year
+    genres {
+      name
+    }
+  }
+}
+```
+
+2. Create `Genre`
+```graphql
+mutation {
+  CreateGenre(name: "Drama") {
+    name
+    movies {
+      title
+      year
+      imdbRating
+    }
+  }
+}
+```
+
+3. Create `Relationship` between Genre `Drama` and Movie `Titanic`
+
+```graphql
+mutation {
+  AddGenreMovies(from: { title: "Titanic" }, to: { name: "Drama" }) {
+    from {
+      title
+    }
+    to {
+      name
+    }
+  }
+}
+```
+
+4. List Genres
+
+```graphql
+query {
+  Genre {
+    name
+    movies {
+      title
+    }
+  }
+}
+```
+
+5. List Movies
+
+```graphql
+query {
+  Movie {
+    title
+    year
+    genres {
+      name
+    }
+  }
+}
+```
+
+Notice that both objects are linked

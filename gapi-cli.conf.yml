@@ -1,0 +1,4 @@
+config:
+  app:
+    local:
+      DEBUG: neo4j-graphql-js # Debug for Cyper queries https://github.com/neo4j-graphql/neo4j-graphql-js/issues/169#issuecomment-452536799
