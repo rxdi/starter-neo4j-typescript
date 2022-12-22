@@ -8,7 +8,7 @@
   "dependencies": {
     "@gapi/core": "^1.8.21",
     "@gapi/voyager": "^1.8.21",
-    "@rxdi/neo4j": "^0.7.41"
+    "@rxdi/neo4j": "^0.7.156"
   },
   "devDependencies": {
     "@types/graphql": "^14.5.0",
